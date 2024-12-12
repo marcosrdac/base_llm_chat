@@ -1,0 +1,13 @@
+# specific
+# ...
+
+# ignore credentials
+credentials/*
+# but consider example credential files
+!*-example.yaml
+!*-example.yml
+
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
