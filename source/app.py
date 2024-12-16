@@ -13,7 +13,9 @@ from langchain_core.prompts import ChatPromptTemplate
 from utils.prompts import as_template_str
 from utils.graphs import get_agent, role_avatars, get_run_id_from_message
 from utils.tools import (
-    search_web_sources_tool,
+    # search_web_sources_tool,
+    search_duckduckgo_sources_tool,
+    search_serper_sources_tool,
     open_web_page_tool,
     generate_image_tool,
     #search_law_corpus_tool,
@@ -26,7 +28,8 @@ from utils.tools import (
 #@st.cache_resource  # not supported yet
 async def get_graph_with_cache():
     tools = [
-        search_web_sources_tool,
+        # search_duckduckgo_tool,
+        search_serper_sources_tool,
         open_web_page_tool,
         generate_image_tool,
         #search_law_corpus_tool,
