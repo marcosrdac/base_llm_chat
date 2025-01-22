@@ -4,7 +4,7 @@ from typing_extensions import Literal
 from langchain.tools import Tool, tool
 from utils.decorators import catch_as_str, add_docstring
 from utils.models import OpenAIModels
-from utils.prompts import as_template_str
+from utils.prompts import as_template
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from urllib.parse import urlparse
@@ -188,7 +188,7 @@ async def generate_image_tool(
 #    
 #    retrieval_qa_chat_prompt = PromptTemplate(
 #        input_variables=["context", "input", "reranking_context"],
-#        template=as_template_str("""
+#        template=as_template("""
 #            You are meant to answer the user's question using information given from context documents.
 #            Always answer in Brazilian Portuguese.
 #            The documents are from a Vade Mecum book of 2023.
@@ -215,7 +215,7 @@ async def generate_image_tool(
 #    
 #    document_prompt = PromptTemplate(
 #        input_variables=["page_content", "page"],
-#        template=as_template_str("""
+#        template=as_template("""
 #            2023 Vade Mecum page: {page}
 #            snippet: {page_content}
 #        """),

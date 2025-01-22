@@ -1,4 +1,5 @@
 import asyncio
+from collections import defaultdict
 from typing import List, Dict, Any, Optional, Union, Annotated
 from typing_extensions import TypedDict
 from langgraph.graph.message import add_messages
@@ -6,7 +7,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.runnables import RunnableConfig
 from utils.models import get_text_generator
-from utils.prompts import as_template_str
+from utils.prompts import as_template
 from langchain.prompts import ChatPromptTemplate, AIMessagePromptTemplate
 from langchain_core.messages import ToolMessage, message_chunk_to_message
 from langchain_core.callbacks.manager import adispatch_custom_event
@@ -14,6 +15,9 @@ import json
 
 class MessagesState(TypedDict):
     messages: Annotated[list, add_messages]
+
+class RoleAndMessageState(TypedDict):
+    messages: Annotated[list[dict[str, Any]], add_messages]
 
 
 class AgentNode:
@@ -37,6 +41,8 @@ class AgentNode:
         message = None
         async for chunk in stream:
             message = message + chunk if message else chunk
+            message.name = self.role
+
             chunk_data = {"chunk": message}
             await adispatch_custom_event(
                 f"on_{self.role}_stream",
@@ -70,7 +76,7 @@ class AgentNode:
                 config=config
             )
 
-        return {"messages": message}
+        return {"messages": [message]}
 
 
 class ActionNode:
@@ -111,7 +117,8 @@ class ActionNode:
 
             tool_message = ToolMessage(
                 content=json.dumps(resolved_tool_result),
-                name=tool_call["name"],
+                #name=tool_call["name"],
+                name="tool",
                 tool_call_id=tool_call["id"],
             )
 
@@ -192,7 +199,7 @@ class ReasoningNode:
 
 
 chat_prompt = ChatPromptTemplate([
-    AIMessagePromptTemplate.from_template(as_template_str("""
+    AIMessagePromptTemplate.from_template(as_template("""
         Answer the following questions as best you can. You have access to the following tools:
 
         {tools}
@@ -297,7 +304,7 @@ async def get_agent(tools, kind=None):
 
 
     # chat_prompt = ChatPromptTemplate([
-        # AIMessagePromptTemplate.from_template(as_template_str("""
+        # AIMessagePromptTemplate.from_template(as_template("""
             # Answer the following questions as best you can. You have access to the following tools:
 
             # {tools}
@@ -341,11 +348,17 @@ def get_run_id_from_message(message=None):
     return message.id[4:] if getattr(message, "id") else None
 
 
-role_avatars = {
-    "user": "🧑",
-    "act": ":material/plumbing:",
-    "agent": "🤖",
-}
+# _persona_avatars = {
+    # "user": "🧑",
+    # "act": ":material/plumbing:",
+    # "agent": "🤖",
+# }
+
+persona_avatars = defaultdict(lambda: "👤")
+persona_avatars["user"] = "🧑"
+persona_avatars["act"] = ":material/plumbing:"
+persona_avatars["agent"] = "🤖"
+
 
 # Customer Support Agent 🤖 💬 📞 🤝 💼 📱 ☎️ 👨‍💻 🤝 📞 💻 👂 🛠️
 # Educational Tutor 📚 🧑‍🏫 🎓 🖊️ 📘 🎓 ✍️ 🧑‍🎓 📕 🧠 📖 📝 🎓 👩‍🏫 🧑‍🎓
